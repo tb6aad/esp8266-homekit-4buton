@@ -1,0 +1,11 @@
+# WiFi credentials - do not commit
+include/config.h
+
+# Build artifacts
+.build/
+*.bin
+*.elf
+*.map
+
+# VSCode
+.vscode/

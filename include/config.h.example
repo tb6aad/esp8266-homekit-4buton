@@ -1,0 +1,22 @@
+#pragma once
+
+// ─── WiFi Ayarları ───────────────────────────────────────────────────────────
+#define WIFI_SSID     "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+
+// ─── Donanım Ayarları ────────────────────────────────────────────────────────
+// Fabrika sıfırlama pini — GPIO0 (FLASH butonu), dahili pull-up, basınca GND
+#define PIN_FACTORY   0   // D3
+
+// 4 buton pini — dahili pull-up, basınca GND
+#define PIN_BTN_1     5   // D1 - GPIO5
+#define PIN_BTN_2     4   // D2 - GPIO4
+#define PIN_BTN_3    14   // D5 - GPIO14
+#define PIN_BTN_4    12   // D6 - GPIO12
+
+// ─── HomeKit Ayarları ────────────────────────────────────────────────────────
+#define HOMEKIT_PASSWORD  "459-27-836"
+
+// ─── Depolama Versiyonu ──────────────────────────────────────────────────────
+// Aksesuar yapısı değişince bu sayıyı artır → ESP otomatik EEPROM temizler
+#define HK_STORAGE_VERSION  3
