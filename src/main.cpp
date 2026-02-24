@@ -58,11 +58,12 @@ static bool     s_bssid_valid = false;
 // ─── Zamanlayıcılar ──────────────────────────────────────
 static const uint32_t WIFI_RETRY_INTERVAL_MS    = 10000;
 static const uint32_t HOMEKIT_CHECK_INTERVAL_MS = 30000;
-static const uint8_t  HOMEKIT_MAX_DISCONNECTED  = 6;
+static const uint8_t  HOMEKIT_MAX_DISCONNECTED  = 3;   // 90sn (önceki 180sn)
 
 static uint32_t last_wifi_check       = 0;
 static uint32_t last_hk_check         = 0;
 static uint8_t  hk_disconnected_count = 0;
+static bool     wifi_was_disconnected = false;  // WiFi kopma takibi
 
 // ─── Fabrika Sıfırlama (loop) ─────────────────────────────
 static uint32_t factory_press_start = 0;
@@ -243,11 +244,18 @@ void loop() {
   if (now - last_wifi_check > WIFI_RETRY_INTERVAL_MS) {
     last_wifi_check = now;
     if (WiFi.status() != WL_CONNECTED) {
+      wifi_was_disconnected = true;
       if (s_bssid_valid) {
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD, s_channel, s_bssid);
       } else {
         WiFi.reconnect();
       }
+    } else if (wifi_was_disconnected) {
+      // WiFi yeniden bağlandı → HomeKit mDNS kaydını bilemez → temiz restart
+      wifi_was_disconnected = false;
+      Serial.println("[WiFi] Yeniden baglandi. HomeKit icin yeniden baslatiliyor...");
+      delay(1000);
+      ESP.restart();
     }
   }
 
