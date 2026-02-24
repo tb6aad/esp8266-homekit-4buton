@@ -9,15 +9,13 @@
  *  GPIO14 (D5) — Buton 3
  *  GPIO12 (D6) — Buton 4
  *
- *  Otomatik depo temizleme: HK_STORAGE_VERSION değişince
- *  ilk açılışta EEPROM otomatik temizlenir, yeniden eşleştir.
+ *  Fabrika sıfırlamak için GPIO0 (D3) butonuna 5 sn basılı tutun.
  * ============================================================
  */
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <arduino_homekit_server.h>
-#include <EEPROM.h>
 #include "config.h"
 
 // ─── HomeKit Dışa Aktarımları ────────────────────────────
@@ -70,33 +68,12 @@ static uint32_t factory_press_start = 0;
 static bool     factory_active      = false;
 static bool     factory_last        = HIGH;
 
-// ─── Otomatik Depo Versiyonu Kontrolü ────────────────────
-#define STORAGE_VER_ADDR  4094
-
-void check_storage_version() {
-  EEPROM.begin(4096);
-  uint8_t stored = EEPROM.read(STORAGE_VER_ADDR);
-  if (stored != (uint8_t)HK_STORAGE_VERSION) {
-    Serial.printf("[Setup] Surum uyumsuz (%d->%d): depo temizleniyor...\n",
-                  stored, (uint8_t)HK_STORAGE_VERSION);
-    for (int i = 0; i < 4096; i++) EEPROM.write(i, 0xFF);
-    EEPROM.write(STORAGE_VER_ADDR, (uint8_t)HK_STORAGE_VERSION);
-    EEPROM.commit();
-    EEPROM.end();
-    Serial.println("[Setup] Temizlendi. Yeniden baslatiliyor...");
-    delay(300);
-    ESP.restart();
-  }
-  EEPROM.end();
-}
-
 // ─── HomeKit Storage Sıfırla ─────────────────────────────
+// Kütüphanenin kendi API'si kullanılır — ham EEPROM silme yok.
+// Ham EEPROM silme güç kesiminde storage bozulmasına yol açıyordu.
 void factory_reset() {
-  Serial.println("[Reset] HomeKit storage siliniyor...");
-  EEPROM.begin(4096);
-  for (int i = 0; i < 4096; i++) EEPROM.write(i, 0xFF);
-  EEPROM.commit();
-  EEPROM.end();
+  Serial.println("[Reset] HomeKit eslestirme siliniyor...");
+  homekit_storage_reset();
   Serial.println("[Reset] Silindi! Yeniden baslatiliyor...");
   delay(500);
   ESP.restart();
@@ -180,8 +157,6 @@ void setup() {
     btn_stable[i] = digitalRead(BTN_PINS[i]);
     btn_last[i]   = btn_stable[i];
   }
-
-  check_storage_version();
 
   WiFi.mode(WIFI_STA);
   WiFi.persistent(false);
